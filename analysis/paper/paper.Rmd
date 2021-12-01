@@ -1,17 +1,12 @@
 ---
-title: "Research Compendium practicexdd"
+title: "Research Compendium practice"
 author:
-  - Myfirstname Mylastname: Yeh
+  - Chih-Fu Yeh:  
       email: yehcf@stanford.edu
       institute: Stanford University
       correspondence: true
-  - Yourfirstname Yourlastname:
-      email: fl@another.edu
-      institute: [UofA]
-      correspondence: false
-institute:
-  - UofO: University of One Place
-  - UofA: University of Another Place
+      
+  
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
     bookdown::word_document2:
@@ -22,14 +17,15 @@ output:
       - --lua-filter=../templates/author-info-blocks.lua
       - --lua-filter=../templates/pagebreak.lua
 bibliography: references.bib
-csl: "../templates/journal-of-archaeological-science.csl" # Insert path for the bib-style
+csl: "../templates/nature.csl" # Insert path for the bib-style
 abstract: |
   Text of abstract
 keywords: |
   keyword 1; keyword 2; keyword 3
 highlights: |
   These are the highlights. 
----
+
+--- 
 
 <!-- This is the format for text comments that will be ignored during renderings. Do not put R code in these comments because it will not be ignored. -->
 
@@ -57,13 +53,82 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Here is a citation [@Marwick2017]
+This is a replication of figure 2A from @hirt2017 (Fig. \@ref(fig:fig2a))
 
 # Background
 
 # Methods
 
 # Results
+
+```{r load}
+
+library(maxspeed)
+library(dplyr)
+library(ggplot2)
+maxspeed <- readRDS("../data/derived_data/maxspeed.RDS")
+```
+
+```{r fig2a, fig.cap="Replication of figure 2a from [@hirt2017]"}
+palette <- list(green = "#83CE3D",
+                orange = "#E39F2F",
+                blue = "#5F9FA1")
+
+fly_dat <- filter(maxspeed, locomotion == "flying")
+fly_model <- fit_maxspeed(fly_dat)
+fly_spd <- tibble(
+  mass_kg = seq(min(fly_dat$mass_kg), max(fly_dat$mass_kg), length.out = 1000),
+  max_spd_kmh = predict_maxspeed(mass_kg, fly_model)
+)
+
+run_dat <- filter(maxspeed, locomotion == "running")
+run_model <- fit_maxspeed(run_dat)
+run_spd <- tibble(
+  mass_kg = seq(min(run_dat$mass_kg), max(run_dat$mass_kg), length.out = 1000),
+  max_spd_kmh = predict_maxspeed(mass_kg, run_model)
+)
+
+swm_dat <- filter(maxspeed, locomotion == "swimming")
+swm_model <- fit_maxspeed(swm_dat)
+swm_spd <- tibble(
+  mass_kg = seq(min(swm_dat$mass_kg), max(swm_dat$mass_kg), length.out = 1000),
+  max_spd_kmh = predict_maxspeed(mass_kg, swm_model)
+)
+
+ggplot(fly_dat, aes(x = mass_kg, y = max_spd_kmh)) +
+  geom_point(color = palette$green, size = 0.5, shape = 15) +
+  geom_point(data = run_dat, color = palette$orange, size = 0.5, shape = 16) +
+  geom_point(data = swm_dat, color = palette$blue, size = 0.5, shape = 17) +
+  geom_line(data = fly_spd, 
+            color = palette$green, 
+            size = 1.25) +
+  geom_line(data = fly_spd, 
+            color = "white", 
+            size = 0.5) +
+  geom_line(data = run_spd, 
+            color = palette$orange, 
+            size = 1.25) +
+  geom_line(data = run_spd, 
+            color = "white", 
+            size = 0.5) +
+  geom_line(data = swm_spd, 
+            color = palette$blue, 
+            size = 1.25) +
+  geom_line(data = swm_spd, 
+            color = "white", 
+            size = 0.5) +
+  scale_x_log10("Body mass (kg)",
+                limits = 10^c(-10, 7),
+                breaks = 10^c(-10, -6, -2, 1, 4, 7),
+                labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  scale_y_log10(bquote(Speed~(km~h^-1)),
+                limits = 10^c(-2, 3),
+                breaks = 10^(-2:3),
+                labels = c("0.01", "0.1", "1", "10", "100", "1,000")) +
+  annotation_logticks() +
+  theme_classic() +
+  theme(aspect.ratio = 1)
+```
 
 <!-- Here's some example analysis code: -->
 
@@ -82,7 +147,7 @@ Figure \@ref(fig:demo-plot) shows how we can have a caption and cross-reference 
 x <- round(pi, 2)
 ```
 
-Here is an example of inline code `r x` in the middle of a sentence. 
+Here is an example of inline code `r x` in the middle of a sentence.
 
 # Discussion
 
@@ -94,17 +159,18 @@ Here is an example of inline code `r x` in the middle of a sentence.
 
 \newpage
 
-# References 
+# References
 
 <!-- The following line ensures the references appear here for the MS Word or HTML output files, rather than right at the end of the document (this will not work for PDF files):  -->
 
-<div id="refs"></div>
+::: {#refs}
+:::
 
 \newpage
 
 ### Colophon
 
-This report was generated on `r Sys.time()` using the following computational environment and dependencies: 
+This report was generated on `r Sys.time()` using the following computational environment and dependencies:
 
 ```{r colophon, cache = FALSE}
 # which R packages and versions?
